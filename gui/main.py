@@ -1,10 +1,11 @@
+from acoustic_fingerprinting import AcousticFingerprintingApp
 
 
 
 def main():
-    pass
-
-
+    
+    app = AcousticFingerprintingApp()
+    app.run()
 
 
 
