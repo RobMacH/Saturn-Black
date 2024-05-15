@@ -16,7 +16,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Define kernel ridge regression model
 kernel = 'rbf'  # You can choose 'linear', 'poly', 'rbf', 'sigmoid', or custom kernel
 alpha = 0.1  # Regularization parameter
-gamma = 0.03  # Kernel coefficient, only used for 'rbf', 'poly', and 'sigmoid' kernels
+gamma = None  # Kernel coefficient, only used for 'rbf', 'poly', and 'sigmoid' kernels
 
 krr_model = KernelRidge(alpha=alpha, kernel=kernel, gamma=gamma)
 
