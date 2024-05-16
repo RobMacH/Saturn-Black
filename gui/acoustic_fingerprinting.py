@@ -17,7 +17,9 @@ from tkinter import Frame, Tk, Image, Button, Text, Canvas, PhotoImage, Label, E
 # from PIL import Image, ImageTk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-import simplepyble
+
+from threading import Thread
+
 
 
 
@@ -86,6 +88,11 @@ class AcousticFingerprintingApp(Tk):
         self.fft_data_canvas.get_tk_widget().pack(expand='True', fill='both')
         self.fft_data_canvas.draw()
 
+        #Zephyr Heartrate Sensor CB:C6:14:E6:FC:92
+        # Characteristic # 3
+
+
+
     
 
         # # MQTT Connection
@@ -121,6 +128,7 @@ class AcousticFingerprintingApp(Tk):
         # lines = ax.plot([],[])[0]
         
         return fig
+
 
 
 
