@@ -7,21 +7,34 @@ import array
 
 
 def test():
-
+    
     with open("untitled.raw", "rb") as in_f:
         data = in_f.read()
     
-    print(data)
-    print(type(data[0]))
-    print(type(data))
-    print(data[0])
-    
- 
-    with wave.open("sound.wav", "wb") as out_f:
-                out_f.setnchannels(1)
-                out_f.setsampwidth(2)
-                out_f.setframerate(16000)
-                out_f.writeframes(data)
+    for i in range(len(data) - 2):
+        byte16 = bytes(data[i:i+2])
+        print(int.from_bytes(byte16, 'big'))
+   
+
+    # print(int.from_bytes(data[200:202], 'big'))
+    # with wave.open("sound.wav", "wb") as out_f:
+    #             out_f.setnchannels(1)
+    #             out_f.setsampwidth(2)
+    #             out_f.setframerate(16000)
+    #             out_f.writeframes(data)
+
+    # print(type(data[0:2]))
+
+    """ The below code works, define the stream then just write a bytes array to the stream and it plays back the audio 
+        Input to write() is the frames (data) and the length of frames (len(frames) / 2) since each value in data is 1 byte but our audio samples are 2 bytes"""
+    # p = pyaudio.PyAudio()
+
+    # stream = p.open(format=pyaudio.paInt16,
+    #                 channels=1,
+    #                 rate=16000,
+    #                 output=True)
+
+    # stream.write(data, int(214464/2))
 
 
 
@@ -167,5 +180,5 @@ def main():
 
 
 if __name__ == '__main__':
-    notify()
-    # test()
+    # notify()
+    test()
