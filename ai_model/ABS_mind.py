@@ -4,23 +4,29 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_regression
 import numpy as np
+import pandas as pd
 
+def main(df: pd.DataFrame):
+    
+    print(f"{df.head()}\n")
+    print(f"{df.info()}\n")
+    print(f"{df.isnull().sum()}\n")
 
-def main():
-
+    y = df['class']
+    X = df[1:, '0':]
     # Generate synthetic data for demonstration
-    X, y = make_regression(n_samples=100, n_features=1, noise=0.1, random_state=42)
+    # X, y = make_regression(n_samples=100, n_features=1, noise=0.1, random_state=42)
 
-    for i in range(X.size):
-        print("X: ", X[i], "Y: ", y[i])
+    # for i in range(X.size):
+    #     print("X: ", X[i], "Y: ", y[i])
 
-        # Split data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Split data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Define kernel ridge regression model
     kernel = 'rbf'  # You can choose 'linear', 'poly', 'rbf', 'sigmoid', or custom kernel
     alpha = 0.1  # Regularization parameter
-    gamma = None  # Kernel coefficient, only used for 'rbf', 'poly', and 'sigmoid' kernels
+    gamma = 0.001  # Kernel coefficient, only used for 'rbf', 'poly', and 'sigmoid' kernels
 
     krr_model = KernelRidge(alpha=alpha, kernel=kernel, gamma=gamma)
 
