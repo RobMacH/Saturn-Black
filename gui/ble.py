@@ -13,7 +13,7 @@ def test():
     
     for i in range(len(data) - 2):
         byte16 = bytes(data[i:i+2])
-        print(int.from_bytes(byte16, 'big'))
+        print(int.from_bytes(byte16, 'little'))
    
 
     # print(int.from_bytes(data[200:202], 'big'))
@@ -35,7 +35,6 @@ def test():
     #                 output=True)
 
     # stream.write(data, int(214464/2))
-
 
 
 def notify():
@@ -98,20 +97,15 @@ def notify():
                     rate=16000,
                     output=True)
 
-    
 
-    
     arr = []
 
     
     # Write the content to the characteristic
     
-
-    
-
     try:
         while True:
-            contents = peripheral.notify(service_uuid, characteristic_uuid, lambda data: stream.write(bytes(data)))
+            contents = peripheral.notify(service_uuid, characteristic_uuid, lambda data: print(int.from_bytes(data, 'big')))
 
             time.sleep(5)
             # print(arr)
@@ -122,7 +116,7 @@ def notify():
             # for element in arr:
             #     a += element
             # a = bytes(a)
-            # # stream.write(a)
+            # stream.write(a, int(len(a)/2))
             # arr = []
             # print(a[30])
             # print(a[26])
