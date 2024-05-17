@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+
+cmake_minimum_required(VERSION 3.20.0)
+
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+project(dmic)
+
+set(MYLIB_PATH ../../mylib)
+
+set(INCLUDE_PATH ../../include)
+
+zephyr_library_include_directories(${ZEPHYR_BASE}/samples/bluetooth)
+
+target_sources(app PRIVATE src/main.c)
+
+target_sources(app PRIVATE ${MYLIB_PATH}/microphone.c)
+#target_sources(app PRIVATE ${MYLIB_PATH}/microphone_test.c)
+target_sources(app PRIVATE ${MYLIB_PATH}/bluetooth_audio.c)
+#target_sources(app PRIVATE ${MYLIB_PATH}/bluetooth_audio_test.c)
+target_sources(app PRIVATE ${MYLIB_PATH}/audio_service.c)
+#target_sources(app PRIVATE ${MYLIB_PATH}/audio_service_test.c)
+target_include_directories(app PRIVATE ${INCLUDE_PATH})
