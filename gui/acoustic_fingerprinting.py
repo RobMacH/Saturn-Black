@@ -20,6 +20,8 @@ from matplotlib.figure import Figure
 
 from threading import Thread
 
+from ble import notify
+
 
 
 
@@ -79,18 +81,38 @@ class AcousticFingerprintingApp(Tk):
         self.fft_graph.pack(side='right', expand=True, fill='both')
    
 
-        self.raw_data_fig = self.configure_raw_data_plot()
+        self.raw_data_fig, self.ax_raw = self.configure_raw_data_plot()
         self.raw_data_canvas = FigureCanvasTkAgg(self.raw_data_fig, master=self.raw_graph)
         self.raw_data_canvas.get_tk_widget().pack(expand=True, fill='both')
         self.raw_data_canvas.draw()
-        self.fft_data_fig = self.configure_fft_data_plot()
+        self.fft_data_fig, self.ax_fft = self.configure_fft_data_plot()
         self.fft_data_canvas = FigureCanvasTkAgg(self.fft_data_fig, master=self.fft_graph)
         self.fft_data_canvas.get_tk_widget().pack(expand='True', fill='both')
         self.fft_data_canvas.draw()
 
-        #Zephyr Heartrate Sensor CB:C6:14:E6:FC:92
-        # Characteristic # 3
+        self.plot_thread = Thread(name='plot', target=self.plot_data)
 
+
+        #Zephyr Heartrate Sensor CB:C6:14:E6:FC:92
+        # Characteristic # 3    
+
+
+
+    def plot_data(self):
+
+        lines = self.ax_raw.plot([],[])[0]
+
+        while (1):
+
+            pass
+
+
+    def connect_microphone(self):
+
+
+        
+
+    def notify(self):
 
 
     
@@ -114,7 +136,7 @@ class AcousticFingerprintingApp(Tk):
         # lines = ax.plot([],[])[0]
 
 
-        return fig
+        return fig, ax
 
     def configure_fft_data_plot(self):
 
@@ -127,7 +149,7 @@ class AcousticFingerprintingApp(Tk):
         ax.set_ylim(-100, 100)
         # lines = ax.plot([],[])[0]
         
-        return fig
+        return fig, ax
 
 
 
