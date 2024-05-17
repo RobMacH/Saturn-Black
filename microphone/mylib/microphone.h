@@ -17,7 +17,7 @@
 #define SAMPLE_BIT_WIDTH 16
 #define BYTES_PER_SAMPLE sizeof(int16_t)
 /* Milliseconds to wait for a block to be read. */
-#define READ_TIMEOUT     1000
+#define READ_TIMEOUT     5000
 
 /* Size of a block for 100 ms of audio data. */
 #define BLOCK_SIZE(_sample_rate, _number_of_channels) \
