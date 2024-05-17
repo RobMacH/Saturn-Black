@@ -113,6 +113,8 @@ int bluetooth_audio_init(void)
     * of starting delayed work so we do it here
     */
     while (1) {
+
+        
         if (k_msgq_get(&recv_msgq, &recv_data, K_FOREVER) == 0) {
 
             /* Heartrate measurements simulation */
