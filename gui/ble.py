@@ -6,6 +6,8 @@ import array
 
 
 
+
+
 def test():
     
     with open("untitled.raw", "rb") as in_f:
@@ -105,22 +107,27 @@ def notify():
     
     try:
         while True:
-            contents = peripheral.notify(service_uuid, characteristic_uuid, lambda data: print(int.from_bytes(data, 'big')))
+            contents = peripheral.notify(service_uuid, characteristic_uuid, lambda data: arr.append(data))
+        
 
-            time.sleep(5)
-            # print(arr)
-            # print(type(arr[0]))
-
-            # a = bytearray()
+            time.sleep(10)
+        
+            a = bytearray()
     
-            # for element in arr:
-            #     a += element
-            # a = bytes(a)
-            # stream.write(a, int(len(a)/2))
+            for element in arr:
+                a += element
+        
+            a = bytes(a)
+            # print(a)
+            print(len(a))
+            stream.write(a, int(len(a)/2))
+            # arr = bytearray()
             # arr = []
             # print(a[30])
             # print(a[26])
             # print(a[52])
+            peripheral.disconnect()
+            break
             
             # print(type(a))
             # print(type(a[0]))
@@ -174,5 +181,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # notify()
-    test()
+    notify()
+    # test()
