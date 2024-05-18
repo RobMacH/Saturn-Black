@@ -34,6 +34,7 @@ int bluetooth_audio_init(void);
 
 /** @brief Send a 16-bit PCM audio value. */
 void audio_notify(uint16_t pcm_value);
+//void audionotify(uint16_t* buffer);
 
 
 #endif /* AUDIO_SERVICE_H_ */

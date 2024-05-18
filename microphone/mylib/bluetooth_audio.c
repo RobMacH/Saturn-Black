@@ -15,6 +15,8 @@
 #include <zephyr/bluetooth/gatt.h>
 #include "audio_service.h"
 
+extern struct k_sem mic_sem;
+
 bool hrf_ntf_enabled;
 // Queue to be accessed outside of the module
 extern struct k_msgq recv_msgq;
@@ -112,14 +114,29 @@ int bluetooth_audio_init(void)
     /* Implement notification. At the moment there is no suitable way
     * of starting delayed work so we do it here
     */
+
+    int count = 0;
     while (1) {
 
-        
-        if (k_msgq_get(&recv_msgq, &recv_data, K_FOREVER) == 0) {
+        if (k_sem_take(&mic_sem, K_MSEC(50)) != 0) {
 
-            /* Heartrate measurements simulation */
-			//printk("Data: %i\n", recv_data);
-            audio_notify(recv_data);
+			printk("Input data not available!");
+			
+		} else {
+
+            for (int i = 0; i < 1600*4; i ++) {
+            // if (count == 153600) {
+            //     printk("%d\n", count*2);
+            // }
+                if (k_msgq_get(&recv_msgq, &recv_data, K_FOREVER) == 0) {
+                // count++;
+                /* Heartrate measurements simulation */
+                    //printk("Data: %i\n", recv_data);
+                    audio_notify(recv_data);
+                }
+            }
+            printk("Take this bitch\n\r");
+            k_sem_give(&mic_sem);
         }
 
     }

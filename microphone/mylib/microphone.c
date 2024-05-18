@@ -13,9 +13,10 @@
 
 LOG_MODULE_REGISTER(dmic_sample);
 
+K_SEM_DEFINE(mic_sem, 1, 1);
+
 // Message queue for the 16 bit PCM data
-#define MSG_SIZE 16
-K_MSGQ_DEFINE(recv_msgq, MSG_SIZE, 1600, 1);
+K_MSGQ_DEFINE(recv_msgq, MSG_SIZE, 1600*4, 1);
 
 // Memory stack for the audio buffer
 K_MEM_SLAB_DEFINE_STATIC(mem_slab, MAX_BLOCK_SIZE, BLOCK_COUNT, 4);
@@ -70,58 +71,63 @@ int do_pdm_transfer(const struct device *dmic_dev,
 	}
 
 	uint16_t sample = 0;
-	
-
-    while(1){
-
-		ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_START);
+	ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_START);
 		if (ret < 0) {
 			LOG_ERR("START trigger failed: %d", ret);
 			return ret;
 		}
+	
+	//k_sleep(K_MSEC(5000));
+	int size_count = 0;
+	int count = 0;
 
-        for (int i = 0; i < block_count; ++i) {
-			void *buffer;
-			uint32_t size;
+    while(1){
 
-			
-
-			// Read microphone data
-			ret = dmic_read(dmic_dev, 0, &buffer, &size, READ_TIMEOUT);
-			if (ret < 0) {
-				//LOG_ERR("%d - read failed: %d", i, ret);
-				return ret;
-			}
-
-			uint16_t *audio_data = (uint16_t *)buffer;
-			
-			// Loop through the 3200 byte chunks and store 
-			//for(int i = 0; i < 1600; i+=1){
-				//printk("%u \n", ((uint16_t*) buffer)[i]);
-				// Store 16 bit PCM value in message queue
-				//sample = ((uint8_t*) buffer)[i+1] | ((uint8_t*) buffer)[i] << 8;
-				for(int j = 0; j < 1600; j+=1){
-					printk("%d \n", audio_data[j]);
-					sample = audio_data[j];
-					k_msgq_put(&recv_msgq, &sample, K_NO_WAIT);
-				}
-				
-			//}
-			//printk("\n\r");
-			//k_sleep(K_MSEC(500));
-
-			k_mem_slab_free(&mem_slab, buffer);
-
-        }
-
-		ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_STOP);
-		if (ret < 0) {
-			LOG_ERR("STOP trigger failed: %d", ret);
-			return ret;
+		count ++;
+		if (count == 25) {
+			printk("Size after 10 sec: %u\n", size_count);
 		}
 
-        //k_sleep(K_MSEC(100));
+		if (k_sem_take(&mic_sem, K_MSEC(50)) != 0) {
+
+			printk("Input data not available!\n");
+			
+		} else {
+
+			for (int i = 0; i < block_count; ++i) {
+
+				void *buffer;
+				uint32_t size;
+				// Read microphone data
+				ret = dmic_read(dmic_dev, 0, &buffer, &size, READ_TIMEOUT);
+				if (ret < 0) {
+					//LOG_ERR("%d - read failed: %d", i, ret);
+					return ret;
+				}
+
+				size_count += size;
+
+				uint16_t *audio_data = (uint16_t *)buffer;
+				
+				for(int j = 0; j < 1600; j+=1){
+					//printk("%d \n", audio_data[j]);
+					sample = audio_data[j];
+					//printk("%u\n", sample);
+					k_msgq_put(&recv_msgq, &sample, K_NO_WAIT);
+				}
+
+				k_mem_slab_free(&mem_slab, buffer);
+			}
+
+        }
+		printk("Microphone done! heres the sem\n");
+		k_sem_give(&mic_sem);
     }
+	ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_STOP);
+	if (ret < 0) {
+		LOG_ERR("STOP trigger failed: %d", ret);
+		return ret;
+	}
 
 
 	return ret;

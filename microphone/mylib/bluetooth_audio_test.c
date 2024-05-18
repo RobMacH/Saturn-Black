@@ -15,8 +15,8 @@
 #include <zephyr/bluetooth/gatt.h>
 #include "audio_service.h"
 #include "bluetooth_audio.h"
-// #include "microphone_test.h"
-#include "microphone.h"
+#include "microphone_test.h"
+// #include "microphone.h"
 
 bool hrf_ntf_enabled;
 // Queue to be accessed outside of the module
@@ -100,7 +100,7 @@ int bluetooth_audio_init(void)
 {
     int err;
     // uint16_t recv_data; 
-    uint16_t recv_data[BUF_SIZE];
+    uint16_t recv_data[BUF_SIZE] = {45};
 
     err = bt_enable(NULL);
     if (err) {
@@ -116,15 +116,23 @@ int bluetooth_audio_init(void)
     /* Implement notification. At the moment there is no suitable way
     * of starting delayed work so we do it here
     */
+
+    // int16_t value = 0x2435;
+
+
     while (1) {
 
-    
-        if (k_msgq_get(&recv_msgq, &recv_data, K_FOREVER) == 0) {
 
-            /* Heartrate measurements simulation */
-			//printk("Data: %i\n", recv_data);
-            audio_notify(recv_data);
-        }
+        audio_notify(recv_data);
+    
+        // if (k_msgq_get(&recv_msgq, &recv_data, K_NO_WAIT) == 0) {
+
+        //     // printk("BLUETOOTH: got buffer %p of %u bytes\n\r", recv_data, sizeof(recv_data));
+
+        //     /* Heartrate measurements simulation */
+		// 	//printk("Data: %i\n", recv_data);
+            
+
 
     }
     return 0;
