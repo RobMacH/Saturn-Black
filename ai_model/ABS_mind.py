@@ -10,27 +10,53 @@ import pandas as pd
 import sys
 import makeDataset
 import matplotlib.pyplot as plt
+import pickle as pk
 
-class ABS_Mind:
+class ABS_Mind(object):
     
-    def __init__(self, databaseLocation):
+    numFeatures = 0
+    maxNumFrames = 0
+    knn_model = {0}
+    number = 4
+    databaseLocation = {0}
+
+    def __init__(self, databaseLocation, numFeatures=0):
+        self.number = 2
         self.knn_model = self.ABS_Mind_test(databaseLocation)
-        
+
+    def setFeatures(self):
+        self.numFeatures = self.knn_model.n_features_in_()
+
     def predict(self, dataframe):
         return self.knn_model.predict(dataframe)
 
     def prepareDataframe(self, filelocation):
-        frame = makeDataset.fourierAnalysis(filelocation, self.maxFrameNum)
-        return frame
+        frame, axis = makeDataset.fourierAnalysis(filelocation, self.maxNumFrames)
+        df = pd.DataFrame(data=frame, columns=axis)
+
+
+        index = 0
+        for column in df.columns:
+            if (float(column) > 7000):
+                break
+            index += 1
+        
+        
+
+        df = df.iloc[:, :index]
+        df = df.iloc[:,:] * np.hamming(len(df.columns))
+        return df
+    
+    def brine(self):
+        with open("ABSPickleJar.txt", 'wb') as pickleJar:
+            pk.dump(self, pickleJar)
 
     def ABS_Mind_test(self, input):
         
-        df = makeDataset.makeDataSet(f"{input}")
+        df, self.maxNumFrames = makeDataset.makeDataSet(f"{input}")
 
         y = df['class']
         X = df.iloc[:, 1:]
-
-        self.maxFrameNum = len(X)
 
         # Split data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -86,6 +112,22 @@ class ABS_Mind:
 
         return bestBoy
 
+def ABS_factory(filename=None, *args, **kwargs):
+    if filename:
+        mind = pk.load(filename)
+    else:
+        mind = ABS_Mind(*args, **kwargs)
+    return mind
 
 if __name__ == '__main__':
-    print("No.")
+    if(sys.argv[1] == 'c'):
+        mind = ABS_Mind("/home/rob-spin5/AudioMNIST/data/08")
+        mind.brine()
+    elif(sys.argv[1] == 'l'):
+        with open("ABSPickleJar.txt", 'rb') as PickleJar:
+            mind = ABS_factory(PickleJar)
+        df = mind.prepareDataframe("/home/rob-spin5/AudioMNIST/data/08/1_08_5.wav")
+        print(mind.predict(df))
+    else:
+        print("Bad Args.")
+
