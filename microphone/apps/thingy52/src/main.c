@@ -19,9 +19,9 @@
 
 // Thread definitions
 #define BLUETOOTH_PRIORITY 3
-#define BLUETOOTH_STACK 500
+#define BLUETOOTH_STACK 7000
 #define MIC_PRIORITY 4
-#define MIC_STACK 500 
+#define MIC_STACK 4096
 
 int main(void)
 {
