@@ -16,7 +16,7 @@ def main():
     df = makeDataset.makeDataSet("/home/rob-spin5/AudioMNIST/data/08")
 
     y = df['class']
-    X = df.loc[:, 0.0:]
+    X = df.iloc[:, 1:10]
 
     # print("y is: \n", y)
     # print("X is: \n", X)
@@ -46,7 +46,7 @@ def main():
     bestK = 0
     kMax = 100
 
-    for k in range(1,kMax):
+    for k in range(1,kMax+1):
         #print("k=", k)
         knn_model = KNeighborsClassifier(n_neighbors=k)
 
@@ -76,9 +76,16 @@ def main():
 
     print(f"\nBest model was k={bestK} with ACC = {bestAccuracy}.")
     
-    p = plt.plot(range(1,kMax), accuracySeries)
+
+    plt.figure(0)
+    p = plt.plot(range(1,kMax+1), accuracySeries)
     plt.ylabel("Accuracy")
     plt.xlabel("k")
+
+    #print(zeros)
+
+    #plt.figure(1)
+    
     plt.show()
 
     print("End of Program...")
