@@ -142,7 +142,6 @@ def makeDataSet(directoryStr):
 
             frame, axis = fourierAnalysis(directoryStr + '/' + filename, maxFrameNum)
             f.write(np.array2string(axis) + f"length: {len(axis)}" + '\n')
-
             
             frames += frame
             if(len(axis) < minAxisLength):
@@ -183,16 +182,15 @@ def makeDataSet(directoryStr):
             break
         index += 1
 
-    
-
 
     df = df.iloc[:, :index]
+    df = df.iloc[:,:] * np.hamming(len(df.columns))
 
     df.insert(0, 'class', classes, True)
 
     print("\nDone...")
 
-    return df
+    return df, maxFrameNum
     
 
 
