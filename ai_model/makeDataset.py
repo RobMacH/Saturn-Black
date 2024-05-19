@@ -21,17 +21,21 @@ def fourierAnalysis(file, maxFrameNum):
 
         padding = (maxFrameNum - num_frames)
 
-        if(padding % 2 != 0):
-            # is odd
-            padding += 1
-            
-
         leftPadding = math.ceil(padding/2)
         rightPadding = math.floor(padding/2)
+
+        if(padding % 2 != 0):
+            # is odd
+            rightPadding +=2
+            
         wav_frames = wav_file.readframes(num_frames)
+
+        if(len(wav_frames) % 2 != 0):
+            leftPadding += 2
         #print("frames", num_frames,"wave frames:", len(wav_frames))
         wav_frames += b'00' * (rightPadding)
         wav_frames = (b'00' * leftPadding) + wav_frames
+        
         #print("frames", num_frames,"wave frames:", len(wav_frames))
         wav_frames = np.frombuffer(wav_frames, dtype=np.int16)
         
@@ -45,7 +49,8 @@ def fourierAnalysis(file, maxFrameNum):
             fft_frames.append(abs(fft_data.real))
         
         # Get the frequency axis
-        freq_axis = np.fft.rfftfreq(int(len(wav_frames)), d=1/(2048))
+        freq_axis = np.fft.rfftfreq(int(len(wav_frames)), d=1/sample_rate)
+        
 
     return fft_frames, freq_axis
 
@@ -67,7 +72,7 @@ def fileChecker(file):
 
 def makeDataSet(directoryStr):
     if(directoryStr == None):
-        directoryStr = "/home/rob-spin5/AudioMNIST/data/08"
+        directoryStr = "/home/rob-spin5/AudioMNIST/data/07"
 
     directory = os.fsencode(directoryStr)
 
@@ -120,9 +125,6 @@ def makeDataSet(directoryStr):
             continue
     
     print('\n')
-
-    #print("Minimum Frame Count:", minFrameNum)
-    #print("Maximum Frame Count:", maxFrameNum)
         
     N = 20000
     frames = []
@@ -143,6 +145,17 @@ def makeDataSet(directoryStr):
 
             frame, axis = fourierAnalysis(directoryStr + '/' + filename, maxFrameNum)
             f.write(np.array2string(axis) + f"length: {len(axis)}" + '\n')
+
+            # logFrame = [[]]
+
+            # #print("before:", frame)
+
+            # for element in frame:
+            #     for value in element:
+            #         #print(f"Value: {value} log10 of value: {math.log10(value)}")
+            #         logFrame[0].append(math.log10(value))
+
+            # #print("after:", logFrame)
             frames += frame
             if(len(axis) < minAxisLength):
                 #print("\n Min:", minAxisLength)
@@ -159,14 +172,33 @@ def makeDataSet(directoryStr):
             continue
         else:
             continue
+    print('\n')
     #print(f"Max Axis Length: {maxAxisLength} | Min Axis Length: {minAxisLength}")
     f.close
-    for f in range(0,len(frames)):
-        #print("length of frames", len(frames[f]))
-        circumFrames.insert(0, frames[f][:minAxisLength])
+
+    index = 0
+    for frame in frames:
+        if (len(frames[index]) != len(axes)):
+            frame = frame[0:-1]
+            frames[index] = frame
+        index += 1
+            
 
     print("Creating dataframe...")
+
     df = pd.DataFrame(data=frames, columns=axes)
+    
+    print("Trimming...")
+    index = 0
+    for column in df.columns:
+        if (float(column) > 7000):
+            break
+        index += 1
+
+    
+
+
+    df = df.iloc[:, :index]
 
     df.insert(0, 'class', classes, True)
 
