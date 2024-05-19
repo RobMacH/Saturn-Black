@@ -4,7 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_regression
-from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 import numpy as np
 import pandas as pd
 import sys
@@ -13,17 +13,17 @@ import matplotlib.pyplot as plt
 
 def main():
     
-    df = makeDataset.makeDataSet("/home/rob-spin5/AudioMNIST/data/08")
+    df = makeDataset.makeDataSet(f"/home/rob-spin5/AudioMNIST/data/{sys.argv[1]}")
 
     y = df['class']
-    X = df.iloc[:, 1:10]
+    X = df.iloc[:, 1:]
 
     # print("y is: \n", y)
     # print("X is: \n", X)
 
-    if(input("Dataset complete. Continue? ") != 'y'):
-        print("Exiting...")
-        return
+    # if(input("Dataset complete. Continue? ") != 'y'):
+    #     print("Exiting...")
+    #     return
 
     # Generate synthetic data for demonstration
     # X, y = make_regression(n_samples=100, n_features=1, noise=0.1, random_state=42)
@@ -71,29 +71,23 @@ def main():
         if(accuracy > bestAccuracy):
             bestAccuracy = accuracy
             bestK = k
+            cm = confusion_matrix(y_test, knn_y_pred)
         loadingBar = "\u2588" * int((k/kMax)*100) + "\u2591" * (100 - int((k/kMax)*100))
         print("Testing k =", k, "of", kMax,f"[Best ACC {bestAccuracy} (k={bestK})]", f"|{loadingBar}|", end="\r")
 
     print(f"\nBest model was k={bestK} with ACC = {bestAccuracy}.")
-    
+    print("Confusion Matrix:\n", cm)
 
     plt.figure(0)
     p = plt.plot(range(1,kMax+1), accuracySeries)
     plt.ylabel("Accuracy")
     plt.xlabel("k")
 
-    #print(zeros)
-
-    #plt.figure(1)
-    
+    ConfusionMatrixDisplay(cm).plot()
     plt.show()
 
     print("End of Program...")
-
-
-        #cm = confusion_matrix(y_test, knn_y_pred)
-
-        #print("Confusion Matrix:\n", cm)
+        
 
 
 
