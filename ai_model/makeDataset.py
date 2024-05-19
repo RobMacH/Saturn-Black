@@ -69,10 +69,9 @@ def fileChecker(file):
         sample_rate = wav_file.getframerate()
         return num_frames, num_channels, sample_rate
 
-
 def makeDataSet(directoryStr):
     if(directoryStr == None):
-        directoryStr = "/home/rob-spin5/AudioMNIST/data/07"
+        directoryStr = "/home/rob-spin5/AudioMNIST/data/08"
 
     directory = os.fsencode(directoryStr)
 
@@ -81,8 +80,6 @@ def makeDataSet(directoryStr):
     fileCounter = 1
 
     f = open("axes_values.txt", 'w')
-
-    
 
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
@@ -146,16 +143,7 @@ def makeDataSet(directoryStr):
             frame, axis = fourierAnalysis(directoryStr + '/' + filename, maxFrameNum)
             f.write(np.array2string(axis) + f"length: {len(axis)}" + '\n')
 
-            # logFrame = [[]]
-
-            # #print("before:", frame)
-
-            # for element in frame:
-            #     for value in element:
-            #         #print(f"Value: {value} log10 of value: {math.log10(value)}")
-            #         logFrame[0].append(math.log10(value))
-
-            # #print("after:", logFrame)
+            
             frames += frame
             if(len(axis) < minAxisLength):
                 #print("\n Min:", minAxisLength)
