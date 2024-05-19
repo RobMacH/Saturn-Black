@@ -13,10 +13,10 @@
 
 LOG_MODULE_REGISTER(dmic_sample);
 
-K_SEM_DEFINE(mic_sem, 1, 1);
+//K_SEM_DEFINE(mic_sem, 1, 1);
 
 // Message queue for the 16 bit PCM data
-K_MSGQ_DEFINE(recv_msgq, MSG_SIZE, 1600*4, 1);
+K_MSGQ_DEFINE(recv_msgq, MSG_SIZE, 4, 1);
 
 // Memory stack for the audio buffer
 K_MEM_SLAB_DEFINE_STATIC(mem_slab, MAX_BLOCK_SIZE, BLOCK_COUNT, 4);
@@ -70,7 +70,7 @@ int do_pdm_transfer(const struct device *dmic_dev,
 		return ret;
 	}
 
-	uint16_t sample = 0;
+	uint64_t sample = 0;
 	ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_START);
 		if (ret < 0) {
 			LOG_ERR("START trigger failed: %d", ret);
@@ -83,17 +83,14 @@ int do_pdm_transfer(const struct device *dmic_dev,
 
     while(1){
 
-		count ++;
-		if (count == 25) {
-			printk("Size after 10 sec: %u\n", size_count);
-		}
+		// count ++;
+		// if (count == 25) {
+		// 	printk("Size after 10 sec: %u\n", size_count);
+		// }
 
-		if (k_sem_take(&mic_sem, K_MSEC(50)) != 0) {
-
-			printk("Input data not available!\n");
-			
-		} else {
-
+		// if (k_sem_take(&mic_sem, K_MSEC(50)) != 0) {
+		// 	printk("Input data not available!\n");
+		// } else {
 			for (int i = 0; i < block_count; ++i) {
 
 				void *buffer;
@@ -105,23 +102,23 @@ int do_pdm_transfer(const struct device *dmic_dev,
 					return ret;
 				}
 
-				size_count += size;
+				// size_count += size;
 
-				uint16_t *audio_data = (uint16_t *)buffer;
+				buffer = (uint64_t *)buffer;
 				
-				for(int j = 0; j < 1600; j+=1){
+				//for(int j = 0; j < 400; j+=1){
 					//printk("%d \n", audio_data[j]);
-					sample = audio_data[j];
+				//	sample = audio_data[j];
 					//printk("%u\n", sample);
-					k_msgq_put(&recv_msgq, &sample, K_NO_WAIT);
-				}
-
+				
+				k_msgq_put(&recv_msgq, buffer, K_MSEC(50));
+				//}
 				k_mem_slab_free(&mem_slab, buffer);
+				//printk("400 values sent from mic\n");
 			}
 
-        }
-		printk("Microphone done! heres the sem\n");
-		k_sem_give(&mic_sem);
+        //}
+		//k_sem_give(&mic_sem);
     }
 	ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_STOP);
 	if (ret < 0) {
