@@ -137,7 +137,7 @@ def makeDataSet(directoryStr):
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".wav"):
-            loadingBar = "\u2588" * int((fileCounter/fileNum)*100) + "\u2591" * (100 - int((fileCounter/fileNum)*100))
+            loadingBar = "\u2588" * int((fileCounter/fileNum)*50) + "\u2591" * (50 - int((fileCounter/fileNum)*50))
             print("Analysing file", fileCounter, "of", fileNum, f"|{loadingBar}|", end="\r")
 
             frame, axis = fourierAnalysis(directoryStr + '/' + filename, maxFrameNum)
