@@ -41,6 +41,8 @@ class ABS_Mind(object):
                 break
             index += 1
         
+        if(index % 2):
+            index-=1
         
 
         df = df.iloc[:, :index]
@@ -96,7 +98,7 @@ class ABS_Mind(object):
                 bestK = k
                 cm = confusion_matrix(y_test, knn_y_pred)
                 bestBoy = knn_model
-            loadingBar = "\u2588" * int((k/kMax)*100) + "\u2591" * (100 - int((k/kMax)*100))
+            loadingBar = "\u2588" * int((k/kMax)*50) + "\u2591" * (50 - int((k/kMax)*50))
             print("Testing k =", k, "of", kMax,f"[Best ACC {bestAccuracy} (k={bestK})]", f"|{loadingBar}|", end="\r")
 
         print(f"\nBest model was k={bestK} with ACC = {bestAccuracy}.")
@@ -120,14 +122,15 @@ def ABS_factory(filename=None, *args, **kwargs):
     return mind
 
 if __name__ == '__main__':
-    if(sys.argv[1] == 'c'):
-        mind = ABS_Mind("/home/rob-spin5/AudioMNIST/data/08")
+    if((sys.argv[1] == 'c') & (len(sys.argv) == 3)):
+        mind = ABS_Mind(f"/home/rob-spin5/AudioMNIST/data/{sys.argv[2]}")
         mind.brine()
-    elif(sys.argv[1] == 'l'):
+    elif((sys.argv[1] == 'l') & (len(sys.argv) == 5)):  
+        print("Doing a think...")      
         with open("ABSPickleJar.txt", 'rb') as PickleJar:
             mind = ABS_factory(PickleJar)
-        df = mind.prepareDataframe("/home/rob-spin5/AudioMNIST/data/08/1_08_5.wav")
-        print(mind.predict(df))
+        df = mind.prepareDataframe(f"/home/rob-spin5/AudioMNIST/data/{sys.argv[3]}/{sys.argv[2]}_{sys.argv[3]}_{sys.argv[4]}.wav")
+        print("It is", mind.predict(df)[0])
     else:
         print("Bad Args.")
 
