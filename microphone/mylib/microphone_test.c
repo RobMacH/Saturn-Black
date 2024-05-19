@@ -13,7 +13,7 @@
 
 LOG_MODULE_REGISTER(dmic_sample);
 
-K_MSGQ_DEFINE(recv_msgq, SLAB_SIZE, 10, 1);
+K_MSGQ_DEFINE(recv_msgq, SLAB_SIZE, 8, 1);
 
 // Memory stack for the audio buffer - adjust the number of MS till we reach our max RAM
 /* NAME OF SLAB     BLOCK SIZE   HOW MANY BLOCKS    N-BYTE Boundary*/
@@ -70,36 +70,39 @@ int do_pdm_transfer(const struct device *dmic_dev,
     void *buffer;
 	size_t size;
 
+	
+
 
     while(1) {
 
-        // Enable the stream
+		// Enable the stream
 		ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_START);
 		if (ret < 0) {
 			LOG_ERR("START trigger failed: %d", ret);
 			return ret;
 		}
 
+
         // Read microphone data
         // Fills our entire slab (I believe)
         ret = dmic_read(dmic_dev, 0, &buffer, &size, READ_TIMEOUT);
         if (ret < 0) {
-            //LOG_ERR("%d - read failed: %d", i, ret);
+            // LOG_ERR("%d - read failed: %d", i, ret);
             return ret;
         }
+		//printk("New line to take up space\n\r");
+		printk("got buffer %p of %u bytes\n\r", buffer, size);
+		
+		printk("Here1\n\r");
 
         k_msgq_put(&recv_msgq, (uint16_t*)buffer, K_NO_WAIT);
+		printk("Here2\n\r");
     
         k_mem_slab_free(&mem_slab, buffer);
-
-		ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_STOP);
-		if (ret < 0) {
-			LOG_ERR("STOP trigger failed: %d", ret);
-			return ret;
-		}
+		printk("Here3\n\r");
 
         //k_sleep(K_MSEC(100));
-    }
+   
 
 
 	return ret;
@@ -121,7 +124,7 @@ int mic_init(void)
 	}
 
 	struct pcm_stream_cfg stream = {
-		.pcm_width = BYTES_PER_SAMPLE,
+		.pcm_width = SAMPLE_BIT_WIDTH,
 		.mem_slab  = &mem_slab,
 	};
 	struct dmic_cfg cfg = {
@@ -146,7 +149,8 @@ int mic_init(void)
 	cfg.channel.req_chan_map_lo =
 		dmic_build_channel_map(0, 0, PDM_CHAN_LEFT);
 	cfg.streams[0].pcm_rate = AUDIO_FREQ;
-	cfg.streams[0].block_size = SLAB_SIZE;
+	cfg.streams[0].block_size = 
+		BLOCK_SIZE(cfg.streams[0].pcm_rate, cfg.channel.req_num_chan);
 
 	// Start reading PCM data
     ret = do_pdm_transfer(dmic_dev, &cfg);

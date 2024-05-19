@@ -10,7 +10,7 @@
 #include <zephyr/audio/dmic.h>
 
 #include <zephyr/logging/log.h>
-#define MSG_SIZE 16
+#define MSG_SIZE 2
 
 // Frequency and bit width
 #define MAX_SAMPLE_RATE  16000

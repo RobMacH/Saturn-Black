@@ -12,7 +12,7 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
 #include "audio_service.h"
-// #include "microphone_test.h"
+#include "microphone_test.h"
 #include "microphone.h"
 #include <zephyr/sys/util.h>
 #include <zephyr/bluetooth/byteorder.h>
@@ -76,6 +76,7 @@ void audio_notify(uint16_t* buffer)
     for (int i = 0; i < BUF_SIZE; i++) {
 
         sample = buffer[i];
+        // printk("HEY\n\r");
         bt_gatt_notify(NULL, &audio_svc.attrs[1], &sample, sizeof(sample));
         
     }
