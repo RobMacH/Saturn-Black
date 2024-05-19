@@ -3,9 +3,10 @@ import wave
 import matplotlib.pyplot as plt
 import pandas as pd
 import os, os.path
+import math
 
 # Open the WAV file
-def fourierAnalysis(file):
+def fourierAnalysis(file, maxFrameNum):
     with wave.open(file, 'rb') as wav_file:
         #print("Scanning file: ", file)
         # Get the number of frames, channels and sample rate
@@ -17,7 +18,25 @@ def fourierAnalysis(file):
         #print("Sample rate: ", sample_rate)
         
         # Read the audio frames
+
+        padding = (maxFrameNum - num_frames)
+
+        leftPadding = math.ceil(padding/2)
+        rightPadding = math.floor(padding/2)
+
+        if(padding % 2 != 0):
+            # is odd
+            rightPadding +=2
+            
         wav_frames = wav_file.readframes(num_frames)
+
+        if(len(wav_frames) % 2 != 0):
+            leftPadding += 2
+        #print("frames", num_frames,"wave frames:", len(wav_frames))
+        wav_frames += b'00' * (rightPadding)
+        wav_frames = (b'00' * leftPadding) + wav_frames
+        
+        #print("frames", num_frames,"wave frames:", len(wav_frames))
         wav_frames = np.frombuffer(wav_frames, dtype=np.int16)
         
         # Apply FFT to each channel
@@ -30,7 +49,8 @@ def fourierAnalysis(file):
             fft_frames.append(abs(fft_data.real))
         
         # Get the frequency axis
-        freq_axis = np.fft.rfftfreq(num_frames, d=1/sample_rate)
+        freq_axis = np.fft.rfftfreq(int(len(wav_frames)), d=1/sample_rate)
+        
 
     return fft_frames, freq_axis
 
@@ -47,11 +67,11 @@ def fileChecker(file):
         num_channels = wav_file.getnchannels()
         #print("Number of channels: ", num_channels)
         sample_rate = wav_file.getframerate()
-        return sample_rate
+        return num_frames, num_channels, sample_rate
 
-
-def main():
-    directoryStr = "/home/rob-spin5/AudioMNIST/data/08"
+def makeDataSet(directoryStr):
+    if(directoryStr == None):
+        directoryStr = "/home/rob-spin5/AudioMNIST/data/08"
 
     directory = os.fsencode(directoryStr)
 
@@ -59,7 +79,7 @@ def main():
     fileNum = 0
     fileCounter = 1
 
-    
+    f = open("axes_values.txt", 'w')
 
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
@@ -70,12 +90,14 @@ def main():
         else:
             continue
 
+    minFrameNum = 99999
+    maxFrameNum = 0
 
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".wav"):
             print("Scanning file", fileCounter, "of", fileNum, end="\r")
-            newSampleRate = fileChecker(directoryStr + '/' + filename)
+            frame_num, channels, newSampleRate = fileChecker(directoryStr + '/' + filename)
             if(first == 1):
                 oldSamepleRate = newSampleRate
                 first = 0
@@ -85,7 +107,14 @@ def main():
                 return -1
             else:
                 oldSamepleRate = newSampleRate
-                fileCounter += 1
+
+            if(frame_num > maxFrameNum):
+                maxFrameNum = frame_num    
+            
+            if(frame_num < minFrameNum):
+                minFrameNum = frame_num
+
+            fileCounter += 1
 
             
             continue
@@ -96,24 +125,32 @@ def main():
         
     N = 20000
     frames = []
+    circumFrames = []
     axes = []
     classes = []
 
-    fileCounter = 0
+    fileCounter = 1
+    minAxisLength = 99999999
     maxAxisLength = 0
     
 
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".wav"):
-            loadingBar = "\u2588" * int((fileCounter/fileNum)*100) + "\u2591" * (100 - int((fileCounter/fileNum)*100))
+            loadingBar = "\u2588" * int((fileCounter/fileNum)*50) + "\u2591" * (50 - int((fileCounter/fileNum)*50))
             print("Analysing file", fileCounter, "of", fileNum, f"|{loadingBar}|", end="\r")
 
-            frame, axis = fourierAnalysis(directoryStr + '/' + filename)
+            frame, axis = fourierAnalysis(directoryStr + '/' + filename, maxFrameNum)
+            f.write(np.array2string(axis) + f"length: {len(axis)}" + '\n')
+            
             frames += frame
+            if(len(axis) < minAxisLength):
+                #print("\n Min:", minAxisLength)
+                minAxisLength = len(axis)
+                axes = axis
+            
             if(len(axis) > maxAxisLength):
                 maxAxisLength = len(axis)
-                axes = axis
 
             classes += filename.split('_')[0]
 
@@ -122,27 +159,40 @@ def main():
             continue
         else:
             continue
-    #print("after", axes)
     print('\n')
-    print(frames)
-    for f in range(0,len(frames)):
-        #print("length of frames", len(frames[f]))
-        frames[f][:] = frames[f][0:maxAxisLength]
+    #print(f"Max Axis Length: {maxAxisLength} | Min Axis Length: {minAxisLength}")
+    f.close
 
+    index = 0
+    for frame in frames:
+        if (len(frames[index]) != len(axes)):
+            frame = frame[0:-1]
+            frames[index] = frame
+        index += 1
+            
 
-    
+    print("Creating dataframe...")
 
     df = pd.DataFrame(data=frames, columns=axes)
+    
+    print("Trimming...")
+    index = 0
+    for column in df.columns:
+        if (float(column) > 7000):
+            break
+        index += 1
+
+
+    df = df.iloc[:, :index]
+    df = df.iloc[:,:] * np.hamming(len(df.columns))
+
+    df.insert(0, 'class', classes, True)
+
     print("\nDone...")
 
-    print(df)
-
-    print(f"Data frame head: {df.head()}")
-
-    
-
+    return df, maxFrameNum
     
 
 
 if __name__ == "__main__":
-    main()
+    makeDataSet("/home/rob-spin5/AudioMNIST/data/08")
