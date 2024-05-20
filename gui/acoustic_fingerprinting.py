@@ -18,9 +18,23 @@ from tkinter import Frame, Tk, Image, Button, Text, Canvas, PhotoImage, Label, E
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from threading import Thread
+from threading import Semaphore
 
-from ble import notify
+# from ble import connect_audio_device, notify
+
+
+import settings
+
+from paho_mqtt_sub import *
+from paho_mqtt_pub import *
+
+
+HELP_MSG = """Welcome to the Acoustic Fingerprinting App!:
+    "Choose one of the following options.
+    'p  Predict location
+    'm  Send prediction over mqtt
+    'q' Quit
+: """
 
 
 
@@ -31,12 +45,9 @@ SQUARE_OFFSET = 10
 SCREEN_REFRESH = 500 # Refresh every 500 ms
 
 HOST = "csse4011-iot.zones.eait.uq.edu.au"
-TOPIC = "un44333289"
+TOPIC = "local44333289"
 
 WINDOW_SIZE = '1200x900'
-
-
-
 
 
 class Redirect():
@@ -54,7 +65,7 @@ class Redirect():
     
 
 
-class AcousticFingerprintingApp(Tk):
+class AcousticFingerprintingAppOld(Tk):
 
     def __init__(self):
 
@@ -107,18 +118,10 @@ class AcousticFingerprintingApp(Tk):
             pass
 
 
-    def connect_microphone(self):
-
-
-        
-
-    def notify(self):
-
 
     
 
-        # # MQTT Connection
-        # self.mqttc = self._connect_mqtt(HOST, TOPIC)
+       
 
         # # Setup serial connection
         # self.serial = self._connect_device(DEVICE)
@@ -156,6 +159,83 @@ class AcousticFingerprintingApp(Tk):
 
     def run(self):
 
-        # self.graph_canvas.after(SCREEN_REFRESH, self._update_canvas)
-        # self.pos_label.after(SCREEN_REFRESH, self._update_pos)
         self.mainloop()
+
+
+        
+    
+
+
+class AcousticFingerprintingApp():
+
+
+    def __init__(self):
+
+        # self.peripheral, self.service_uuid, self.characteristic_uuid = connect_audio_device()
+        settings.init()
+        # MQTT Connection
+        self.mqttc = self._connect_mqtt(HOST, TOPIC)
+    
+        # Connect to things
+
+    def _connect_mqtt(self, host, topic):
+
+        mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        mqttc.on_connect = on_connect
+        mqttc.on_message = on_message
+        mqttc.on_subscribe = on_subscribe
+        mqttc.on_unsubscribe = on_unsubscribe
+
+        mqttc.user_data_set([0])
+        mqttc.connect(host)
+        mqttc.subscribe(topic)
+        mqttc.loop_start()
+
+        return mqttc
+    
+    def send_msg_mqtt(self, index: int):
+
+        msg_info = self.mqttc.publish(TOPIC, index, qos=1)
+
+
+
+    def run(self):
+
+        # Begin audio streaming
+        try:
+            # notify(self.peripheral, self.service_uuid, self.characteristic_uuid)
+
+            while True:
+
+                res = input(HELP_MSG)
+
+                if res == 'p':
+
+                    settings.recording = 1
+                    print("Carrying out prediction")
+                    time.sleep(5)
+                    settings.recording = 0
+        
+                elif res == 'q':
+
+                    print("Thank-you for using the Acoustic Fingerprinting App, Good-bye!")
+                    self.peripheral.disconnect()
+                    break
+
+                elif res == 'm':
+
+                    ind = input("Please select room to send: ")
+                    self.send_msg_mqtt(ind)
+                    
+                else:
+                    print("Incorrect options, please select again")
+                
+        except KeyboardInterrupt:
+            self.peripheral.disconnect()
+
+
+        
+        
+
+        
+

@@ -53,9 +53,10 @@ class ABS_Mind(object):
         with open("ABSPickleJar.txt", 'wb') as pickleJar:
             pk.dump(self, pickleJar)
 
-    def ABS_Mind_test(self, input):
+    def ABS_Mind_test(self, input, all=0):
         
         df, self.maxNumFrames = makeDataset.makeDataSet(f"{input}")
+        
 
         y = df['class']
         X = df.iloc[:, 1:]
@@ -102,7 +103,7 @@ class ABS_Mind(object):
             print("Testing k =", k, "of", kMax,f"[Best ACC {bestAccuracy} (k={bestK})]", f"|{loadingBar}|", end="\r")
 
         print(f"\nBest model was k={bestK} with ACC = {bestAccuracy}.")
-        print("Confusion Matrix:\n", cm)
+        #print("Confusion Matrix:\n", cm)
 
         plt.figure(0)
         p = plt.plot(range(1,kMax+1), accuracySeries)
