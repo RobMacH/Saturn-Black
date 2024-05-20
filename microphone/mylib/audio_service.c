@@ -15,10 +15,6 @@
 #include <zephyr/sys/util.h>
 #include <zephyr/bluetooth/byteorder.h>
 
-
-
-// Audio value and update flag 
-// static uint64_t audio_pcm_value = 0;
 static uint8_t audio_update = 0;
 
 static uint64_t audio_buff[400];
@@ -67,15 +63,12 @@ BT_GATT_SERVICE_DEFINE(audio_svc,
 );
 
 // Function to broadcast the pcm value through the service
-void audio_notify(uint64_t* pcm_value)
+void audio_notify(uint8_t* pcm_value)
 {
-    // if (!audio_update) {
-    //     printk("Nothing\n");
-    //     return;
+   
+    for (int i = 0; i < 160; i++) {
 
-    for (int i = 0; i < 400; i+=2) {
-
-        bt_gatt_notify(NULL, &audio_svc.attrs[1], &(pcm_value[i]), 16);
+        bt_gatt_notify(NULL, &audio_svc.attrs[1], &(pcm_value[i*CHUNK_SIZE]), CHUNK_SIZE);
 
     }
 }

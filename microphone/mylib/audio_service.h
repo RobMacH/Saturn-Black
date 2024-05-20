@@ -26,7 +26,7 @@
 #define BT_UUID_AUDIO_DATA \
         BT_UUID_DECLARE_16(BT_UUID_AUDIO_DATA_VAL)
 
-#define CHUNK_SIZE 16
+#define CHUNK_SIZE 20
 
 /** @brief Initialize the Audio Service. */
 void audio_service_init(void);
@@ -35,7 +35,7 @@ void audio_service_init(void);
 int bluetooth_audio_init(void);
 
 /** @brief Send a 16-bit PCM audio value. */
-void audio_notify(uint64_t* pcm_value);
+void audio_notify(uint8_t* pcm_value);
 //void audionotify(uint16_t* buffer);
 
 

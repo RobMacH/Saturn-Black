@@ -15,11 +15,11 @@
 #include <zephyr/bluetooth/gatt.h>
 #include "audio_service.h"
 
-//extern struct k_sem mic_sem;
-
 bool hrf_ntf_enabled;
 // Queue to be accessed outside of the module
 extern struct k_msgq recv_msgq;
+
+// int connected_stat = 0;
 
 // Construct data structure for PCM values
 static const struct bt_data ad[] = {
@@ -34,6 +34,7 @@ static void connected(struct bt_conn *conn, uint8_t err)
         printk("Connection failed (err 0x%02x)\n", err);
     } else {
         printk("Connected\n");
+        // connected = 1;
     }
 }
 
@@ -98,7 +99,7 @@ static struct bt_conn_auth_cb auth_cb_display = {
 int bluetooth_audio_init(void)
 {
     int err;
-    uint64_t recv_data[400];
+    uint8_t recv_data[3200];
 
     err = bt_enable(NULL);
     if (err) {
@@ -114,45 +115,16 @@ int bluetooth_audio_init(void)
     /* Implement notification. At the moment there is no suitable way
     * of starting delayed work so we do it here
     */
-    // uint64_t value;
-    int count = 0;
+  
     while (1) {
 
-        // if (k_sem_take(&mic_sem, K_MSEC(50)) != 0) {
+        if (k_msgq_get(&recv_msgq, &recv_data, K_FOREVER) == 0) {
 
-		// 	printk("Input data not available!");
-			
-		// } else {
-
-        //     for (int i = 0; i < 1600*4; i ++) {
-        //     // if (count == 153600) {
-        //     //     printk("%d\n", count*2);
-        //     // }
-                if (k_msgq_get(&recv_msgq, &recv_data, K_FOREVER) == 0) {
+            audio_notify(recv_data);
             
-                    // for (int j = 0; j < 400; j++) {
-                        // count ++;
-                        // value = recv_data[j];
-                        // printk("Value: %llu\n\r", value);
-                        audio_notify(recv_data);
-                        // printk("Sent\n\r");
-                    // }
-                    // printk("Sent packet over bluetooth");
-                        memset(recv_data, 0, sizeof(recv_data));
+            memset(recv_data, 0, sizeof(recv_data));
 
-                // count++;
-                /* Heartrate measurements simulation */
-                    //printk("Data: %i\n", recv_data);
-                    
-                }
-
-                // if (!(count%400)) {
-                //     printk("400 sending over bleutooth");
-                // }
-            //}
-            //printk("Take this bitch\n\r");
-            //k_sem_give(&mic_sem);
-        //}
+        }
 
     }
     return 0;

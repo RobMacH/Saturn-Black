@@ -11,9 +11,9 @@
 #include <zephyr/init.h>
 #include "microphone.h"
 
-LOG_MODULE_REGISTER(dmic_sample);
+extern int connected_status;
 
-//K_SEM_DEFINE(mic_sem, 1, 1);
+LOG_MODULE_REGISTER(dmic_sample);
 
 // Message queue for the 16 bit PCM data
 K_MSGQ_DEFINE(recv_msgq, MSG_SIZE, 4, 1);
@@ -58,7 +58,6 @@ int do_pdm_transfer(const struct device *dmic_dev,
 			   size_t block_count)
 {
 	int ret;
-	char msg[MSG_SIZE];
 
 	LOG_INF("PCM output rate: %u, channels: %u",
 		cfg->streams[0].pcm_rate, cfg->channel.req_num_chan);
@@ -77,55 +76,38 @@ int do_pdm_transfer(const struct device *dmic_dev,
 			return ret;
 		}
 	
-	//k_sleep(K_MSEC(5000));
-	int size_count = 0;
-	int count = 0;
+	void *buffer;
+	uint32_t size;
 
-    while(1){
+    while(1) {
 
-		// count ++;
-		// if (count == 25) {
-		// 	printk("Size after 10 sec: %u\n", size_count);
-		// }
+		
+		 
+		// if (connected_status == 1) {
 
-		// if (k_sem_take(&mic_sem, K_MSEC(50)) != 0) {
-		// 	printk("Input data not available!\n");
-		// } else {
-			for (int i = 0; i < block_count; ++i) {
-
-				void *buffer;
-				uint32_t size;
-				// Read microphone data
-				ret = dmic_read(dmic_dev, 0, &buffer, &size, READ_TIMEOUT);
-				if (ret < 0) {
-					//LOG_ERR("%d - read failed: %d", i, ret);
-					return ret;
-				}
-
-				// size_count += size;
-
-				buffer = (uint64_t *)buffer;
-				
-				//for(int j = 0; j < 400; j+=1){
-					//printk("%d \n", audio_data[j]);
-				//	sample = audio_data[j];
-					//printk("%u\n", sample);
-				
-				k_msgq_put(&recv_msgq, buffer, K_MSEC(50));
-				//}
-				k_mem_slab_free(&mem_slab, buffer);
-				//printk("400 values sent from mic\n");
+			// Read microphone data
+			ret = dmic_read(dmic_dev, 0, &buffer, &size, READ_TIMEOUT);
+			if (ret < 0) {
+				//LOG_ERR("%d - read failed: %d", i, ret);
+				return ret;
 			}
 
-        //}
-		//k_sem_give(&mic_sem);
-    }
+			buffer = (uint8_t *)buffer;
+			
+			
+			k_msgq_put(&recv_msgq, buffer, K_MSEC(50));
+			//}
+			k_mem_slab_free(&mem_slab, buffer);
+			//printk("400 values sent from mic\n");
+		// }
+	
+			
+	}
 	ret = dmic_trigger(dmic_dev, DMIC_TRIGGER_STOP);
 	if (ret < 0) {
 		LOG_ERR("STOP trigger failed: %d", ret);
 		return ret;
 	}
-
 
 	return ret;
 }
