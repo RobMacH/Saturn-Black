@@ -20,7 +20,7 @@ from matplotlib.figure import Figure
 
 from threading import Semaphore
 
-# from ble import connect_audio_device, notify
+from ble import connect_to_device
 
 
 import settings
@@ -49,6 +49,15 @@ TOPIC = "local44333289"
 
 WINDOW_SIZE = '1200x900'
 
+# recording = 0
+
+def audio_callback(data):
+    
+    if settings.recording == 1:
+    
+        print(data)
+
+
 
 class Redirect():
     
@@ -62,7 +71,6 @@ class Redirect():
     def flush(self):
         pass
 
-    
 
 
 class AcousticFingerprintingAppOld(Tk):
@@ -163,7 +171,7 @@ class AcousticFingerprintingAppOld(Tk):
 
 
         
-    
+
 
 
 class AcousticFingerprintingApp():
@@ -171,12 +179,15 @@ class AcousticFingerprintingApp():
 
     def __init__(self):
 
-        # self.peripheral, self.service_uuid, self.characteristic_uuid = connect_audio_device()
+        # Globals
         settings.init()
+
+        # Microphone connect
+        self.peripheral, self.service_uuid, self.characteristic_uuid = connect_to_device()
+        
         # MQTT Connection
         self.mqttc = self._connect_mqtt(HOST, TOPIC)
     
-        # Connect to things
 
     def _connect_mqtt(self, host, topic):
 
@@ -203,7 +214,8 @@ class AcousticFingerprintingApp():
 
         # Begin audio streaming
         try:
-            # notify(self.peripheral, self.service_uuid, self.characteristic_uuid)
+
+            content = self.peripheral.notify(self.service_uuid, self.characteristic_uuid, audio_callback)
 
             while True:
 
@@ -235,7 +247,3 @@ class AcousticFingerprintingApp():
 
 
         
-        
-
-        
-
